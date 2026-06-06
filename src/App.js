@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = "https://kbfudodfckumpbidpwrt.supabase.co";
-const SUPABASE_KEY = "sb_publishable_HAXcTl1Tymd-iop7HgWTqw_2sEMAMA9";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZnVkb2RmY2t1bXBiaWRwd3J0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2OTg2OTQsImV4cCI6MjA5NjI3NDY5NH0.pw_Z-46K4CkAAfIG1LYD0tpx3YUOoOvzJLNKBfVy_4E";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CRITERIA = [
