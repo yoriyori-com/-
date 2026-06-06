@@ -214,7 +214,7 @@ export default function App() {
             return <Slider key={c.key} criterion={c} value={scores[c.key]} onChange={function(v){setScores(function(s){return Object.assign({},s,{[c.key]:v});});}}/>;
           })}
           <div style={{margin:"8px 0 16px",padding:"10px 14px",background:"rgba(255,186,8,0.07)",borderRadius:10,fontSize:11,color:"rgba(255,255,255,0.4)",lineHeight:1.8}}>
-            💴 値段ボーナス：〜¥800 <span style={{color:"#ffba08"}}>+1.0</span>　〜¥1,000 <span style={{color:"#ffba08"}}>+0.8</span>　〜¥1,200 <span style={{color:"#ffba08"}}>+0.6</span>　〜¥1,500 <span style={{color:"#ffba08"}}>+0.4</span>　〜¥2,000 <span style={{color:"#ffba08"}}>+0.2</span>
+            💴 値段ボーナス：〜¥400 <span style={{color:"#ffba08"}}>+1.0</span>　〜¥600 <span style={{color:"#ffba08"}}>+0.8</span>　〜¥800 <span style={{color:"#ffba08"}}>+0.6</span>　〜¥1,000 <span style={{color:"#ffba08"}}>+0.4</span>　〜¥1,200 <span style={{color:"#ffba08"}}>+0.3</span>　〜¥1,500 <span style={{color:"#ffba08"}}>+0.2</span>　〜¥2,000 <span style={{color:"#ffba08"}}>+0.1</span>
           </div>
           <div style={{marginBottom:20}}>
             <label style={lbl}>メモ（任意）</label>
