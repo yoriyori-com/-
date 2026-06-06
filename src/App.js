@@ -79,6 +79,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [selected, setSelected] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     supabase.from("curry_record").select("*").order("created_at",{ascending:false})
@@ -96,6 +97,15 @@ export default function App() {
     setView("rank");
   }
 
+  async function handleDelete(id) {
+    const {error} = await supabase.from("curry_record").delete().eq("id", id);
+    if (!error) {
+      setRecords(prev => prev.filter(r => r.id !== id));
+      setSelected(null);
+    }
+    setConfirmDelete(null);
+  }
+
   const sorted = [...records].sort((a,b)=>totalScore(b,b.price)-totalScore(a,a.price));
 
   const inp = {width:"100%",boxSizing:"border-box",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:8,padding:"12px 14px",color:"#fff",fontSize:14,fontFamily:"'Noto Sans JP',sans-serif",outline:"none"};
@@ -104,6 +114,21 @@ export default function App() {
   return (
     <div style={{minHeight:"100vh",background:"radial-gradient(ellipse at 20% 0%,#3d0b00,#1a0500 50%,#0d0200)",fontFamily:"'Noto Sans JP',sans-serif",color:"#fff",paddingBottom:80}}>
       <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet"/>
+
+      {confirmDelete && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+          <div style={{background:"#1a0500",border:"1px solid rgba(232,93,4,0.4)",borderRadius:16,padding:"24px",maxWidth:320,width:"100%",textAlign:"center"}}>
+            <div style={{fontSize:24,marginBottom:12}}>🗑️</div>
+            <div style={{fontSize:15,fontWeight:700,marginBottom:8}}>削除しますか？</div>
+            <div style={{fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:20}}>「{confirmDelete.name}」を削除します。この操作は取り消せません。</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setConfirmDelete(null)} style={{flex:1,padding:"12px",background:"rgba(255,255,255,0.1)",border:"none",borderRadius:10,color:"#fff",fontSize:14,cursor:"pointer",fontFamily:"'Noto Sans JP',sans-serif"}}>キャンセル</button>
+              <button onClick={()=>handleDelete(confirmDelete.id)} style={{flex:1,padding:"12px",background:"#e85d04",border:"none",borderRadius:10,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'Noto Sans JP',sans-serif"}}>削除する</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{background:"linear-gradient(180deg,rgba(232,93,4,0.25),transparent)",padding:"28px 20px 16px",textAlign:"center",borderBottom:"1px solid rgba(232,93,4,0.2)"}}>
         <div style={{fontSize:34}}>🍛</div>
         <div style={{fontSize:22,fontWeight:900,fontFamily:"'Playfair Display',serif",letterSpacing:2,marginTop:4}}>CURRY SCORE</div>
@@ -114,6 +139,7 @@ export default function App() {
           <button key={v} onClick={()=>setView(v)} style={{flex:1,padding:"12px 0",background:"none",border:"none",color:view===v?"#faa307":"rgba(255,255,255,0.4)",fontSize:13,fontWeight:view===v?700:400,borderBottom:view===v?"2px solid #faa307":"2px solid transparent",cursor:"pointer",fontFamily:"'Noto Sans JP',sans-serif"}}>{lb}</button>
         ))}
       </div>
+
       {view==="form" && (
         <div style={{padding:"20px 18px"}}>
           <div style={{marginBottom:16}}>
@@ -153,6 +179,7 @@ export default function App() {
           </button>
         </div>
       )}
+
       {view==="rank" && (
         <div style={{padding:"16px 18px"}}>
           {loading && <div style={{textAlign:"center",color:"rgba(255,255,255,0.4)",marginTop:60}}>読み込み中…</div>}
@@ -161,54 +188,5 @@ export default function App() {
             const total=totalScore(rec,rec.price), base=baseScore(rec), bonus=priceBonus(rec.price);
             const isOpen=selected===rec.id, medal=idx===0?"🥇":idx===1?"🥈":idx===2?"🥉":`${idx+1}.`, col=COLORS[idx%COLORS.length];
             return (
-              <div key={rec.id} onClick={()=>setSelected(isOpen?null:rec.id)}
-                style={{background:isOpen?"rgba(232,93,4,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${isOpen?"rgba(232,93,4,0.4)":"rgba(255,255,255,0.08)"}`,borderRadius:14,marginBottom:10,overflow:"hidden",cursor:"pointer",transition:"all 0.2s"}}>
-                <div style={{display:"flex",alignItems:"center",padding:"14px 16px",gap:12}}>
-                  <div style={{fontSize:idx<3?22:15,minWidth:28,fontWeight:700,color:"rgba(255,255,255,0.5)"}}>{medal}</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:14,fontWeight:700}}>{rec.name}</div>
-                    <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:2}}>{rec.date}{rec.price?`　¥${Number(rec.price).toLocaleString()}`:""}</div>
-                  </div>
-                  <div style={{textAlign:"right"}}>
-                    <div style={{fontSize:28,fontWeight:900,fontFamily:"'Playfair Display',serif",color:col,lineHeight:1}}>{total.toFixed(1)}</div>
-                    {bonus>0&&<div style={{fontSize:10,color:"#ffba08",marginTop:2}}>{base.toFixed(1)} +{bonus.toFixed(1)}</div>}
-                  </div>
-                </div>
-                {isOpen&&(
-                  <div style={{padding:"0 16px 16px",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-                    <div style={{display:"flex",alignItems:"center",marginTop:12}}>
-                      <RadarChart scores={rec} color={col} size={175}/>
-                      <div style={{flex:1,paddingLeft:6}}>
-                        {CRITERIA.map(c=>(
-                          <div key={c.key} style={{display:"flex",justifyContent:"space-between",marginBottom:7,fontSize:12}}>
-                            <span style={{color:"rgba(255,255,255,0.55)"}}>{c.emoji} {c.label}</span>
-                            <span style={{fontWeight:700,color:col}}>{rec[c.key]}</span>
-                          </div>
-                        ))}
-                        <div style={{borderTop:"1px solid rgba(255,255,255,0.08)",paddingTop:7,marginTop:4}}>
-                          <div style={{display:"flex",justifyContent:"space-between",fontSize:12}}>
-                            <span style={{color:"rgba(255,255,255,0.55)"}}>📊 基本点</span>
-                            <span style={{fontWeight:700,color:"rgba(255,255,255,0.8)"}}>{base.toFixed(1)}</span>
-                          </div>
-                          {rec.price&&<div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginTop:5}}>
-                            <span style={{color:"rgba(255,255,255,0.55)"}}>💴 値段ボーナス</span>
-                            <span style={{fontWeight:700,color:"#ffba08"}}>+{bonus.toFixed(1)}</span>
-                          </div>}
-                          <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginTop:6,paddingTop:6,borderTop:"1px solid rgba(255,255,255,0.08)"}}>
-                            <span style={{color:"rgba(255,255,255,0.8)",fontWeight:700}}>🏆 総合点</span>
-                            <span style={{fontWeight:900,color:col,fontFamily:"'Playfair Display',serif"}}>{total.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    {rec.note&&<div style={{marginTop:10,padding:"10px 12px",background:"rgba(255,255,255,0.05)",borderRadius:8,fontSize:12,color:"rgba(255,255,255,0.55)",lineHeight:1.7}}>💬 {rec.note}</div>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+              <div key={rec.id} style={{background:isOpen?"rgba(232,93,4,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${isOpen?"rgba(232,93,4,0.4)":"rgba(255,255,255,0.08)"}`,borderRadius:14,marginBottom:10,overflow:"hidden",transition:"all 0.2s"}}>
+                <div style={{display:"flex",alignItems:"center",padding:"14px 16px",gap:12,cursor:"pointer"}} onClick={()=>setSelected(isOpen?
